@@ -259,9 +259,9 @@
             object-fit: contain;
         }
 
-        .svg-category-icon {
-            width: 34px;
-            height: 34px;
+        .svg-icon {
+            width: 36px;
+            height: 36px;
         }
 
         .tool-title {
@@ -364,10 +364,12 @@
             border: 1px solid var(--card-border);
             border-radius: 10px;
             width: 100%;
-            max-width: 480px;
+            max-width: 500px;
             padding: 24px;
             position: relative;
             box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-header {
@@ -393,12 +395,25 @@
         }
 
         .form-label {
-            display: block;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             font-size: 12px;
             font-weight: 700;
             color: var(--text-muted);
             text-transform: uppercase;
             margin-bottom: 6px;
+        }
+
+        .external-link {
+            color: #4fc3f7;
+            text-decoration: none;
+            font-size: 11px;
+            text-transform: none;
+        }
+
+        .external-link:hover {
+            text-decoration: underline;
         }
 
         .form-input, .form-select, .form-textarea {
@@ -470,18 +485,19 @@
     </div>
 </div>
 
-<!-- Submit Item Modal -->
+<!-- Submit / Edit Item Modal -->
 <div class="modal-backdrop" id="submitModal">
     <div class="modal-card">
         <div class="modal-header">
-            <span>Submit Item to Dashboard</span>
+            <span id="modalFormTitle">Submit Item to Dashboard</span>
             <button class="modal-close" onclick="closeSubmitModal()">&times;</button>
         </div>
         <form id="submitForm" onsubmit="handleFormSubmit(event)">
+            <input type="hidden" id="editingItemId" value="">
+
             <div class="form-group">
                 <label class="form-label">Item URL / Link *</label>
                 <input type="url" id="itemUrl" class="form-input" placeholder="https://..." required onblur="autoDetectFields()">
-                <span class="auto-hint">✨ Icon is auto-fetched from domain</span>
             </div>
 
             <div class="form-group">
@@ -500,8 +516,27 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Custom Icon Image URL (Optional)</label>
-                <input type="url" id="itemIconUrl" class="form-input" placeholder="Leave empty for auto-detect">
+                <label class="form-label">
+                    <span>Icon Preset</span>
+                    <span class="auto-hint" style="margin:0;">Recommended</span>
+                </label>
+                <select id="itemIconPreset" class="form-select">
+                    <option value="AUTO">Auto Detect (Web Favicon / Category Default)</option>
+                    <option value="calc">🧮 Calculator</option>
+                    <option value="hub">📚 Knowledge Hub / Book</option>
+                    <option value="db">🗄️ Database / Storage</option>
+                    <option value="platform">💻 Platform / Application</option>
+                    <option value="gear">⚙️ Settings / Utility</option>
+                    <option value="chart">📊 Analytics / Chart</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <span>Custom Favicon Image URL (Optional)</span>
+                    <a href="https://icon-sets.iconify.design/" target="_blank" class="external-link">Find Icons ↗</a>
+                </label>
+                <input type="url" id="itemIconUrl" class="form-input" placeholder="Paste direct image or SVG URL here">
             </div>
 
             <div class="form-group">
@@ -511,7 +546,7 @@
 
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button type="button" class="btn" style="flex:1;" onclick="closeSubmitModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary" style="flex:1;">Save to Dashboard</button>
+                <button type="submit" class="btn btn-primary" style="flex:1;" id="btnFormSave">Save to Dashboard</button>
             </div>
         </form>
     </div>
@@ -530,9 +565,12 @@
         <div style="color: var(--text-main); font-size: 14px; line-height: 1.5; margin-bottom: 20px;" id="infoDesc">
             No description provided.
         </div>
-        <a id="infoLink" href="#" target="_blank" class="launch-btn" style="width: 100%;">
-            Launch Tool ↗
-        </a>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn" style="flex: 1;" id="btnEditCurrentItem">✏️ Edit Item</button>
+            <a id="infoLink" href="#" target="_blank" class="launch-btn" style="flex: 1.5;">
+                Launch Tool ↗
+            </a>
+        </div>
     </div>
 </div>
 
@@ -540,25 +578,39 @@
     let items = JSON.parse(localStorage.getItem('ALLCON_DASHBOARD_ITEMS')) || [];
     let deleteMode = false;
     let currentCategory = 'ALL';
+    let currentActiveInfoId = null;
 
-    // Vector SVGs used when a site has no web favicon or is on a local network
+    // Vector Preset SVGs
+    const presetSvgs = {
+        'calc': `<svg class="svg-icon" viewBox="0 0 24 24" fill="#81c784"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm5 12H7v-1c0-1.67 3.33-2.5 5-2.5s5 .83 5 2.5v1z"/></svg>`,
+        'hub': `<svg class="svg-icon" viewBox="0 0 24 24" fill="#ffb74d"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>`,
+        'db': `<svg class="svg-icon" viewBox="0 0 24 24" fill="#4fc3f7"><path d="M12 2C6.48 2 2 3.79 2 6v12c0 2.21 4.48 4 10 4s10-1.79 10-4V6c0-2.21-4.48-4-10-4zm0 3c4.42 0 8 1.34 8 2s-3.58 2-8 2-8-1.34-8-2 3.58-2 8-2zm0 15c-4.42 0-8-1.34-8-2v-2.13c1.92 1.15 4.8 1.63 8 1.63s6.08-.48 8-1.63V18c0 .66-3.58 2-8 2z"/></svg>`,
+        'platform': `<svg class="svg-icon" viewBox="0 0 24 24" fill="#ba68c8"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>`,
+        'gear': `<svg class="svg-icon" viewBox="0 0 24 24" fill="#9aa5b1"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>`,
+        'chart': `<svg class="svg-icon" viewBox="0 0 24 24" fill="#e53935"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>`
+    };
+
     const categorySvgs = {
-        'Tool': `<svg class="svg-category-icon" viewBox="0 0 24 24" fill="#81c784"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm5 12H7v-1c0-1.67 3.33-2.5 5-2.5s5 .83 5 2.5v1z"/></svg>`,
-        'Database': `<svg class="svg-category-icon" viewBox="0 0 24 24" fill="#4fc3f7"><path d="M12 2C6.48 2 2 3.79 2 6v12c0 2.21 4.48 4 10 4s10-1.79 10-4V6c0-2.21-4.48-4-10-4zm0 3c4.42 0 8 1.34 8 2s-3.58 2-8 2-8-1.34-8-2 3.58-2 8-2zm0 15c-4.42 0-8-1.34-8-2v-2.13c1.92 1.15 4.8 1.63 8 1.63s6.08-.48 8-1.63V18c0 .66-3.58 2-8 2z"/></svg>`,
-        'Knowledge Hub': `<svg class="svg-category-icon" viewBox="0 0 24 24" fill="#ffb74d"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>`,
-        'Internal Platforms': `<svg class="svg-category-icon" viewBox="0 0 24 24" fill="#ba68c8"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>`
+        'Tool': presetSvgs['calc'],
+        'Database': presetSvgs['db'],
+        'Knowledge Hub': presetSvgs['hub'],
+        'Internal Platforms': presetSvgs['platform']
     };
 
     function autoDetectFields() {
         const urlInput = document.getElementById('itemUrl').value.toLowerCase();
         const categorySelect = document.getElementById('itemCategory');
+        const presetSelect = document.getElementById('itemIconPreset');
 
         if (urlInput.includes('calc') || urlInput.includes('tool')) {
             categorySelect.value = 'Tool';
+            if(presetSelect.value === 'AUTO') presetSelect.value = 'calc';
         } else if (urlInput.includes('sheet') || urlInput.includes('data') || urlInput.includes('table') || urlInput.includes('db')) {
             categorySelect.value = 'Database';
+            if(presetSelect.value === 'AUTO') presetSelect.value = 'db';
         } else if (urlInput.includes('hub') || urlInput.includes('wiki') || urlInput.includes('doc')) {
             categorySelect.value = 'Knowledge Hub';
+            if(presetSelect.value === 'AUTO') presetSelect.value = 'hub';
         }
     }
 
@@ -604,16 +656,25 @@
         grid.innerHTML = filtered.map(item => {
             const iconUrl = getFaviconUrl(item);
             const badgeClass = getCategoryBadgeClass(item.category);
-            const categorySvg = categorySvgs[item.category] || categorySvgs['Tool'];
+            
+            // Choose vector fallback
+            let vectorSvg = categorySvgs[item.category] || categorySvgs['Tool'];
+            if (item.preset && item.preset !== 'AUTO' && presetSvgs[item.preset]) {
+                vectorSvg = presetSvgs[item.preset];
+            }
+
+            const usePresetDirectly = item.preset && item.preset !== 'AUTO' && !item.customIcon;
 
             return `
                 <div class="tool-card">
-                    ${item.desc ? `<button class="info-btn" onclick="openInfoModal('${item.id}')" title="More details">i</button>` : ''}
+                    <button class="info-btn" onclick="openInfoModal('${item.id}')" title="Details & Edit">i</button>
                     
                     <div class="icon-wrapper">
-                        <img class="icon-img" src="${iconUrl}" alt="${item.name}" 
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <div style="display:none;">${categorySvg}</div>
+                        ${usePresetDirectly ? vectorSvg : `
+                            <img class="icon-img" src="${iconUrl}" alt="${item.name}" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div style="display:none;">${vectorSvg}</div>
+                        `}
                     </div>
 
                     <div class="tool-title">${item.name}</div>
@@ -657,35 +718,65 @@
     }
 
     /* Modal Handlers */
-    function openSubmitModal() {
+    function openSubmitModal(editItemId = null) {
+        document.getElementById('editingItemId').value = editItemId || '';
+        document.getElementById('modalFormTitle').innerText = editItemId ? 'Edit Dashboard Item' : 'Submit Item to Dashboard';
+        document.getElementById('btnFormSave').innerText = editItemId ? 'Update Item' : 'Save to Dashboard';
+
+        if (editItemId) {
+            const item = items.find(i => i.id === editItemId);
+            if (item) {
+                document.getElementById('itemUrl').value = item.url;
+                document.getElementById('itemName').value = item.name;
+                document.getElementById('itemCategory').value = item.category;
+                document.getElementById('itemIconPreset').value = item.preset || 'AUTO';
+                document.getElementById('itemIconUrl').value = item.customIcon || '';
+                document.getElementById('itemDesc').value = item.desc || '';
+            }
+        }
+
         document.getElementById('submitModal').classList.add('active');
     }
 
     function closeSubmitModal() {
         document.getElementById('submitModal').classList.remove('active');
         document.getElementById('submitForm').reset();
+        document.getElementById('editingItemId').value = '';
     }
 
     function handleFormSubmit(e) {
         e.preventDefault();
+        const editId = document.getElementById('editingItemId').value;
         const url = document.getElementById('itemUrl').value;
         const name = document.getElementById('itemName').value;
         const category = document.getElementById('itemCategory').value;
+        const preset = document.getElementById('itemIconPreset').value;
         const customIcon = document.getElementById('itemIconUrl').value;
         const desc = document.getElementById('itemDesc').value;
 
-        const newItem = {
-            id: 'item_' + Date.now(),
-            url,
-            name,
-            category,
-            customIcon,
-            desc
-        };
+        if (editId) {
+            // Edit existing
+            const index = items.findIndex(i => i.id === editId);
+            if (index !== -1) {
+                items[index] = { ...items[index], url, name, category, preset, customIcon, desc };
+            }
+        } else {
+            // Create new
+            const newItem = {
+                id: 'item_' + Date.now(),
+                url,
+                name,
+                category,
+                preset,
+                customIcon,
+                desc
+            };
+            items.push(newItem);
+        }
 
-        items.push(newItem);
         localStorage.setItem('ALLCON_DASHBOARD_ITEMS', JSON.stringify(items));
         closeSubmitModal();
+        if (currentActiveInfoId) closeInfoModal();
         renderDashboard();
     }
 
@@ -693,17 +784,24 @@
         const item = items.find(i => i.id === id);
         if (!item) return;
 
+        currentActiveInfoId = id;
         document.getElementById('infoTitle').innerText = item.name;
         document.getElementById('infoCategory').innerText = item.category;
         document.getElementById('infoCategory').className = `category-badge ${getCategoryBadgeClass(item.category)}`;
-        document.getElementById('infoDesc').innerText = item.desc || 'No description provided for this tool.';
+        document.getElementById('infoDesc').innerText = item.desc || 'No description provided for this item.';
         document.getElementById('infoLink').href = item.url;
+
+        document.getElementById('btnEditCurrentItem').onclick = function() {
+            closeInfoModal();
+            openSubmitModal(id);
+        };
 
         document.getElementById('infoModal').classList.add('active');
     }
 
     function closeInfoModal() {
         document.getElementById('infoModal').classList.remove('active');
+        currentActiveInfoId = null;
     }
 
     renderDashboard();
