@@ -4,529 +4,707 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ALLCON Central Dashboard</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        obsidian: {
-                            base: '#0d0f12',
-                            card: '#14181d',
-                            border: '#232931',
-                            hover: '#1b2027',
-                            input: '#090a0c'
-                        },
-                        allcon: {
-                            red: '#e53935',
-                            redDark: '#c62828',
-                            redGlow: 'rgba(229, 57, 53, 0.25)'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Favicon -->
+    <link rel="icon" href="ALLCON-Logo.jpg" type="image/jpeg">
     <style>
-        body {
-            background-color: #0d0f12;
-            color: #f0f3f6;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            min-height: 100vh;
+        :root {
+            --bg-obsidian: #0d0f12;
+            --card-bg: #14181d;
+            --card-border: #232931;
+            --card-hover: #2a313d;
+            --allcon-red: #e53935;
+            --allcon-red-hover: #f44336;
+            --text-main: #f0f3f6;
+            --text-muted: #9aa5b1;
+            --category-tool: #388e3c;
+            --category-db: #0288d1;
+            --category-hub: #f57c00;
+            --category-platform: #7b1fa2;
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-        ::-webkit-scrollbar-track {
-            background: #0d0f12;
+
+        body {
+            background-color: var(--bg-obsidian);
+            color: var(--text-main);
+            padding: 24px 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #232931;
+
+        .dashboard-container {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        /* Header Layout */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--allcon-red);
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .logo-img {
+            max-width: 180px;
+            height: auto;
             border-radius: 4px;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #e53935;
+
+        .welcome-text {
+            font-size: 14px;
+            color: var(--text-muted);
+            max-width: 500px;
+            line-height: 1.4;
         }
 
-        /* Delete Shake Animation */
-        @keyframes shake {
-            0%, 100% { transform: rotate(0deg); }
-            25% { transform: rotate(-1deg); }
-            75% { transform: rotate(1deg); }
-        }
-        .delete-mode-active {
-            animation: shake 0.3s infinite ease-in-out;
-            border-color: #e53935 !important;
-            box-shadow: 0 0 12px rgba(229, 57, 53, 0.4) !important;
+        .header-actions {
+            display: flex;
+            gap: 10px;
         }
 
-        .glass-card {
-            background-color: #14181d;
-            border: 1px solid #232931;
-            transition: all 0.2s ease-in-out;
+        .btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
         }
 
-        .glass-card:hover {
-            border-color: #e53935;
-            box-shadow: 0 6px 20px rgba(229, 57, 53, 0.15);
-            transform: translateY(-2px);
+        .btn:hover {
+            background-color: var(--card-hover);
+        }
+
+        .btn-primary {
+            background-color: var(--allcon-red);
+            border-color: var(--allcon-red);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--allcon-red-hover);
+            border-color: var(--allcon-red-hover);
+        }
+
+        .btn-delete-mode {
+            background-color: #2c1a1d;
+            border-color: #5c2329;
+            color: #ef5350;
+        }
+
+        .btn-delete-mode.active {
+            background-color: var(--allcon-red);
+            border-color: var(--allcon-red);
+            color: #ffffff;
+        }
+
+        /* Controls: Search & Category Filter */
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .search-input {
+            width: 100%;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 10px 14px 10px 38px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--allcon-red);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 6px;
+            background-color: var(--card-bg);
+            padding: 4px;
+            border-radius: 6px;
+            border: 1px solid var(--card-border);
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background-color: var(--allcon-red);
+            color: #ffffff;
+        }
+
+        /* Cards Grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 20px;
+        }
+
+        .tool-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 20px 16px 16px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-4px);
+            border-color: #3e4756;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        .info-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.06);
+            color: var(--text-muted);
+            border: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .info-btn:hover {
+            background-color: var(--allcon-red);
+            color: #ffffff;
+        }
+
+        .icon-wrapper {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background-color: #090a0c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+            border: 1px solid var(--card-border);
+            overflow: hidden;
+            padding: 8px;
+        }
+
+        .icon-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .svg-category-icon {
+            width: 32px;
+            height: 32px;
+            fill: var(--allcon-red);
+        }
+
+        .tool-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 6px;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .category-badge {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-tool { background-color: rgba(56, 142, 60, 0.2); color: #81c784; border: 1px solid var(--category-tool); }
+        .badge-db { background-color: rgba(2, 136, 209, 0.2); color: #4fc3f7; border: 1px solid var(--category-db); }
+        .badge-hub { background-color: rgba(245, 124, 0, 0.2); color: #ffb74d; border: 1px solid var(--category-hub); }
+        .badge-platform { background-color: rgba(123, 31, 162, 0.2); color: #ba68c8; border: 1px solid var(--category-platform); }
+
+        .card-actions {
+            width: 100%;
+            margin-top: auto;
+        }
+
+        .launch-btn {
+            width: 100%;
+            background-color: #1f2630;
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            padding: 8px 0;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 12px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .launch-btn:hover {
+            background-color: var(--allcon-red);
+            border-color: var(--allcon-red);
+            color: #ffffff;
+        }
+
+        .delete-overlay-btn {
+            width: 100%;
+            background-color: #b71c1c;
+            color: #ffffff;
+            border: none;
+            padding: 8px 0;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            background-color: var(--card-bg);
+            border: 1px dashed var(--card-border);
+            border-radius: 10px;
+        }
+
+        /* Modal Styling */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-backdrop.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            width: 100%;
+            max-width: 480px;
+            padding: 24px;
+            position: relative;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 18px;
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            background-color: #090a0c;
+            border: 1px solid var(--card-border);
+            color: #ffffff;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: var(--allcon-red);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .auto-hint {
+            font-size: 11px;
+            color: #81c784;
+            margin-top: 4px;
+            display: block;
         }
     </style>
 </head>
-<body class="p-4 sm:p-6 lg:p-8 flex flex-col min-h-screen">
+<body>
 
-    <div class="max-w-7xl mx-auto w-full flex-grow flex flex-col">
-        
-        <!-- Header Section -->
-        <header class="border-b-2 border-allcon-red pb-6 mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div class="flex flex-col gap-3 max-w-2xl">
-                <!-- Logo -->
-                <div class="w-48 sm:w-56 h-auto">
-                    <img src="ALLCON-Logo.jpg" 
-                         alt="ALLCON Fabrication & Engineering" 
-                         class="w-full h-auto object-contain rounded"
-                         onerror="this.onerror=null; this.src='https://placehold.co/240x60/e53935/ffffff?text=ALLCON+FABRICATION';">
-                </div>
-                <!-- Subtitle -->
-                <p class="text-gray-300 text-sm sm:text-base font-normal tracking-wide leading-relaxed">
-                    Welcome to the Allcon dashboard where you will find all tools, databases and knowledge hubs.
-                </p>
-            </div>
-
-            <!-- Header Action Controls -->
-            <div class="flex items-center gap-3">
-                <button onclick="toggleDeleteMode()" id="deleteModeBtn" 
-                        class="px-4 py-2.5 rounded-lg border border-gray-700 bg-obsidian-card hover:bg-red-950/40 text-gray-300 hover:text-allcon-red hover:border-allcon-red font-semibold text-sm transition flex items-center gap-2">
-                    <i class="fa-solid fa-trash-can"></i>
-                    <span id="deleteBtnText">Delete Item</span>
-                </button>
-                <button onclick="openSubmitModal()" 
-                        class="px-5 py-2.5 rounded-lg bg-allcon-red hover:bg-allcon-redDark text-white font-semibold text-sm shadow-lg shadow-allcon-red/20 transition flex items-center gap-2">
-                    <i class="fa-solid fa-plus"></i>
-                    <span>Submit Item</span>
-                </button>
-            </div>
-        </header>
-
-        <!-- Utility Bar: Search & Category Filter Tabs -->
-        <div class="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center mb-8">
-            
-            <!-- Category Filter Tabs (Index) -->
-            <div class="flex items-center gap-1.5 overflow-x-auto pb-2 md:pb-0 scrollbar-none text-xs sm:text-sm">
-                <button onclick="filterCategory('All')" class="cat-tab active px-4 py-2 rounded-md font-semibold transition bg-allcon-red text-white" data-cat="All">All</button>
-                <button onclick="filterCategory('Tool')" class="cat-tab px-4 py-2 rounded-md font-semibold transition bg-obsidian-card text-gray-400 hover:text-white border border-obsidian-border" data-cat="Tool">Tool</button>
-                <button onclick="filterCategory('Database')" class="cat-tab px-4 py-2 rounded-md font-semibold transition bg-obsidian-card text-gray-400 hover:text-white border border-obsidian-border" data-cat="Database">Database</button>
-                <button onclick="filterCategory('Knowledge Hub')" class="cat-tab px-4 py-2 rounded-md font-semibold transition bg-obsidian-card text-gray-400 hover:text-white border border-obsidian-border" data-cat="Knowledge Hub">Knowledge Hub</button>
-                <button onclick="filterCategory('Internal Platforms')" class="cat-tab px-4 py-2 rounded-md font-semibold transition bg-obsidian-card text-gray-400 hover:text-white border border-obsidian-border" data-cat="Internal Platforms">Internal Platforms</button>
-            </div>
-
-            <!-- Search Input -->
-            <div class="relative min-w-[260px] md:w-72">
-                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
-                <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search tools or keywords..." 
-                       class="w-full bg-obsidian-input border border-obsidian-border rounded-lg pl-10 pr-4 py-2 text-sm text-gray-200 outline-none focus:border-allcon-red transition">
+<div class="dashboard-container">
+    <header>
+        <div class="header-left">
+            <img class="logo-img" src="ALLCON-Logo.jpg" alt="ALLCON Logo" onerror="this.style.display='none'">
+            <div class="welcome-text">
+                Welcome to the ALLCON dashboard where you will find all tools, databases and knowledge hubs.
             </div>
         </div>
+        <div class="header-actions">
+            <button class="btn btn-delete-mode" id="btnDeleteMode" onclick="toggleDeleteMode()">
+                🗑️ Delete Item
+            </button>
+            <button class="btn btn-primary" onclick="openSubmitModal()">
+                ➕ Submit Item
+            </button>
+        </div>
+    </header>
 
-        <!-- Dashboard Grid -->
-        <main class="flex-grow">
-            <!-- Delete Banner Mode Indicator -->
-            <div id="deleteBanner" class="hidden mb-6 p-3 bg-red-950/40 border border-allcon-red rounded-lg text-allcon-red text-sm flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-triangle-exclamation animate-pulse"></i>
-                    <span><strong>Delete Mode Active:</strong> Click the trash button on any item card to permanently remove it.</span>
-                </div>
-                <button onclick="toggleDeleteMode()" class="text-xs text-gray-300 underline hover:text-white">Exit Delete Mode</button>
-            </div>
-
-            <!-- Cards Container Grid -->
-            <div id="itemsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-                <!-- Dynamically populated via JS -->
-            </div>
-
-            <!-- Empty State -->
-            <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center text-gray-500">
-                <i class="fa-solid fa-folder-open text-5xl mb-4 text-gray-600"></i>
-                <p class="text-lg font-semibold text-gray-400">No items found</p>
-                <p class="text-sm mt-1">Try adjusting your search query or click "Submit Item" to add a new tool.</p>
-            </div>
-        </main>
-
-        <!-- Footer -->
-        <footer class="mt-12 pt-6 border-t border-obsidian-border text-center text-xs text-gray-500">
-            ALLCON Fabrication & Engineering (Pty) Ltd. &copy; Central Platform Portal
-        </footer>
-    </div>
-
-    <!-- SUBMIT ITEM MODAL -->
-    <div id="submitModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-obsidian-card border border-obsidian-border rounded-xl w-full max-w-lg overflow-hidden shadow-2xl">
-            <!-- Modal Header -->
-            <div class="p-5 border-b border-obsidian-border flex items-center justify-between bg-obsidian-base">
-                <h3 class="font-bold text-lg text-white flex items-center gap-2">
-                    <i class="fa-solid fa-square-plus text-allcon-red"></i>
-                    Submit New Item
-                </h3>
-                <button onclick="closeSubmitModal()" class="text-gray-400 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <!-- Modal Form -->
-            <form id="itemForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
-                <!-- Title -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Item Name / Title *</label>
-                    <input type="text" id="formTitle" required placeholder="e.g. Arc & Ring Calculator" 
-                           class="w-full bg-obsidian-input border border-obsidian-border rounded-lg px-3.5 py-2.5 text-sm text-white outline-none focus:border-allcon-red">
-                </div>
-
-                <!-- URL -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Target Link / URL *</label>
-                    <input type="url" id="formUrl" required placeholder="https://example.com/tool" onchange="autoFetchIcon()"
-                           class="w-full bg-obsidian-input border border-obsidian-border rounded-lg px-3.5 py-2.5 text-sm text-white outline-none focus:border-allcon-red">
-                </div>
-
-                <!-- Category -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Category *</label>
-                    <select id="formCategory" required class="w-full bg-obsidian-input border border-obsidian-border rounded-lg px-3.5 py-2.5 text-sm text-white outline-none focus:border-allcon-red">
-                        <option value="Tool">1. Tool</option>
-                        <option value="Database">2. Database</option>
-                        <option value="Knowledge Hub">3. Knowledge Hub</option>
-                        <option value="Internal Platforms">4. Internal Platforms</option>
-                    </select>
-                </div>
-
-                <!-- Optional Custom Icon -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Icon / SVG URL <span class="text-gray-500 font-normal">(Optional - Auto-fetched if blank)</span></label>
-                    <input type="url" id="formIcon" placeholder="https://site.com/icon.png" 
-                           class="w-full bg-obsidian-input border border-obsidian-border rounded-lg px-3.5 py-2.5 text-sm text-white outline-none focus:border-allcon-red">
-                </div>
-
-                <!-- Description -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Description / Tool Scope *</label>
-                    <textarea id="formDescription" required rows="3" placeholder="Provide a summary of what this tool is used for..." 
-                              class="w-full bg-obsidian-input border border-obsidian-border rounded-lg px-3.5 py-2.5 text-sm text-white outline-none focus:border-allcon-red resize-none"></textarea>
-                </div>
-
-                <!-- Form Buttons -->
-                <div class="pt-2 flex items-center justify-end gap-3">
-                    <button type="button" onclick="closeSubmitModal()" class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-lg bg-allcon-red hover:bg-allcon-redDark text-white text-sm font-semibold shadow-lg shadow-allcon-red/20">Submit to Dashboard</button>
-                </div>
-            </form>
+    <!-- Controls Bar -->
+    <div class="controls-bar">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search tools, databases, hubs..." oninput="renderDashboard()">
+        </div>
+        <div class="category-tabs">
+            <button class="tab-btn active" onclick="setCategoryFilter('ALL', this)">All Items</button>
+            <button class="tab-btn" onclick="setCategoryFilter('Tool', this)">Tools</button>
+            <button class="tab-btn" onclick="setCategoryFilter('Database', this)">Databases</button>
+            <button class="tab-btn" onclick="setCategoryFilter('Knowledge Hub', this)">Knowledge Hubs</button>
+            <button class="tab-btn" onclick="setCategoryFilter('Internal Platforms', this)">Internal Platforms</button>
         </div>
     </div>
 
-    <!-- MORE DETAILS MODAL -->
-    <div id="detailsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-obsidian-card border border-obsidian-border rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
-            <!-- Header -->
-            <div class="p-5 border-b border-obsidian-border flex items-center justify-between bg-obsidian-base">
-                <div class="flex items-center gap-3">
-                    <img id="detailModalIcon" src="" class="w-8 h-8 rounded object-contain bg-obsidian-input p-1 border border-obsidian-border" alt="Icon">
-                    <div>
-                        <h3 id="detailModalTitle" class="font-bold text-white leading-tight">Tool Title</h3>
-                        <span id="detailModalCategory" class="text-xs text-allcon-red font-semibold">Category</span>
-                    </div>
-                </div>
-                <button onclick="closeDetailsModal()" class="text-gray-400 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <!-- Body -->
-            <div class="p-6 space-y-4">
-                <div>
-                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Description</h4>
-                    <p id="detailModalDescription" class="text-sm text-gray-200 leading-relaxed bg-obsidian-input p-3.5 rounded-lg border border-obsidian-border">
-                        Description content...
-                    </p>
-                </div>
-
-                <div>
-                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Target Address</h4>
-                    <a id="detailModalUrl" href="#" target="_blank" class="text-xs text-allcon-red hover:underline break-all block truncate">
-                        https://...
-                    </a>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="p-4 border-t border-obsidian-border bg-obsidian-base flex justify-end gap-2">
-                <button onclick="closeDetailsModal()" class="px-4 py-2 text-xs font-semibold text-gray-400 hover:text-white">Close</button>
-                <a id="detailModalLaunchBtn" href="#" target="_blank" class="px-4 py-2 bg-allcon-red hover:bg-allcon-redDark text-white text-xs font-semibold rounded-lg flex items-center gap-1.5">
-                    <span>Launch Tool</span>
-                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                </a>
-            </div>
-        </div>
+    <!-- Cards Grid -->
+    <div class="grid-container" id="cardsGrid">
+        <!-- Dynamic Cards Inserted Here -->
     </div>
+</div>
 
-    <!-- APP SCRIPT LOGIC -->
-    <script>
-        // Default Pre-seeded Items
-        const DEFAULT_ITEMS = [
-            {
-                id: 'default-1',
-                title: 'Arc & Ring Calculator',
-                url: 'https://allcon.github.io/arc-calculator',
-                category: 'Tool',
-                icon: 'https://www.google.com/s2/favicons?domain=github.com&sz=128',
-                description: 'Procurement and rolling waste calculator for 6M, 9M, and 13M factory angle bars with OD and Neutral Axis calculation modes.'
-            }
-        ];
+<!-- Submit Item Modal -->
+<div class="modal-backdrop" id="submitModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <span>Submit Item to Dashboard</span>
+            <button class="modal-close" onclick="closeSubmitModal()">&times;</button>
+        </div>
+        <form id="submitForm" onsubmit="handleFormSubmit(event)">
+            <div class="form-group">
+                <label class="form-label">Item URL / Link *</label>
+                <input type="url" id="itemUrl" class="form-input" placeholder="https://..." required onblur="autoDetectFields()">
+                <span class="auto-hint">✨ Icon auto-fetched from URL</span>
+            </div>
 
-        let items = [];
-        let activeCategory = 'All';
-        let searchQuery = '';
-        let isDeleteMode = false;
+            <div class="form-group">
+                <label class="form-label">Item Name *</label>
+                <input type="text" id="itemName" class="form-input" placeholder="e.g. Arc & Ring Calculator" required>
+            </div>
 
-        // Initialize Data
-        window.addEventListener('DOMContentLoaded', () => {
-            const stored = localStorage.getItem('allcon_dashboard_items');
-            if (stored) {
-                try {
-                    items = JSON.parse(stored);
-                } catch (e) {
-                    items = DEFAULT_ITEMS;
-                }
-            } else {
-                items = DEFAULT_ITEMS;
-                saveItems();
-            }
-            renderItems();
+            <div class="form-group">
+                <label class="form-label">Category *</label>
+                <select id="itemCategory" class="form-select" required>
+                    <option value="Tool">Tool</option>
+                    <option value="Database">Database</option>
+                    <option value="Knowledge Hub">Knowledge Hub</option>
+                    <option value="Internal Platforms">Internal Platforms</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description (Optional)</label>
+                <textarea id="itemDesc" class="form-textarea" placeholder="Brief explanation of what this tool does..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn" style="flex:1;" onclick="closeSubmitModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="flex:1;">Save to Dashboard</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Info Modal -->
+<div class="modal-backdrop" id="infoModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <span id="infoTitle">Item Details</span>
+            <button class="modal-close" onclick="closeInfoModal()">&times;</button>
+        </div>
+        <div style="margin-bottom: 12px;">
+            <span id="infoCategory" class="category-badge">Category</span>
+        </div>
+        <div style="color: var(--text-main); font-size: 14px; line-height: 1.5; margin-bottom: 20px;" id="infoDesc">
+            No description provided.
+        </div>
+        <a id="infoLink" href="#" target="_blank" class="launch-btn" style="width: 100%;">
+            Launch Tool ↗
+        </a>
+    </div>
+</div>
+
+<script>
+    // Categories & Storage
+    let items = JSON.parse(localStorage.getItem('ALLCON_DASHBOARD_ITEMS')) || [];
+    let deleteMode = false;
+    let currentCategory = 'ALL';
+
+    // Built-in Default Category SVGs (used if URL has no web favicon or is offline)
+    const categorySvgs = {
+        'Tool': `<svg class="svg-category-icon" viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.6C.4 7 1 10 3 12c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.4-.4.4-1.1 0-1.5z"/></svg>`,
+        'Database': `<svg class="svg-category-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 3.79 2 6v12c0 2.21 4.48 4 10 4s10-1.79 10-4V6c0-2.21-4.48-4-10-4zm0 3c4.42 0 8 1.34 8 2s-3.58 2-8 2-8-1.34-8-2 3.58-2 8-2zm0 15c-4.42 0-8-1.34-8-2v-2.13c1.92 1.15 4.8 1.63 8 1.63s6.08-.48 8-1.63V18c0 .66-3.58 2-8 2zm0-5c-4.42 0-8-1.34-8-2v-2.13c1.92 1.15 4.8 1.63 8 1.63s6.08-.48 8-1.63V13c0 .66-3.58 2-8 2z"/></svg>`,
+        'Knowledge Hub': `<svg class="svg-category-icon" viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>`,
+        'Internal Platforms': `<svg class="svg-category-icon" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>`
+    };
+
+    function autoDetectFields() {
+        const urlInput = document.getElementById('itemUrl').value.toLowerCase();
+        const categorySelect = document.getElementById('itemCategory');
+
+        if (urlInput.includes('calc') || urlInput.includes('tool')) {
+            categorySelect.value = 'Tool';
+        } else if (urlInput.includes('sheet') || urlInput.includes('data') || urlInput.includes('table')) {
+            categorySelect.value = 'Database';
+        } else if (urlInput.includes('hub') || urlInput.includes('wiki') || urlInput.includes('docs')) {
+            categorySelect.value = 'Knowledge Hub';
+        }
+    }
+
+    function getHighResFavicon(url) {
+        try {
+            const domain = new URL(url).hostname;
+            // Use Unavatar with Google HD fallback
+            return `https://unavatar.io/${domain}?fallback=https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+        } catch (e) {
+            return '';
+        }
+    }
+
+    function getCategoryBadgeClass(category) {
+        switch(category) {
+            case 'Tool': return 'badge-tool';
+            case 'Database': return 'badge-db';
+            case 'Knowledge Hub': return 'badge-hub';
+            case 'Internal Platforms': return 'badge-platform';
+            default: return 'badge-tool';
+        }
+    }
+
+    function renderDashboard() {
+        const grid = document.getElementById('cardsGrid');
+        const search = document.getElementById('searchInput').value.toLowerCase();
+
+        let filtered = items.filter(item => {
+            const matchesSearch = item.name.toLowerCase().includes(search) || (item.desc && item.desc.toLowerCase().includes(search));
+            const matchesCategory = currentCategory === 'ALL' || item.category === currentCategory;
+            return matchesSearch && matchesCategory;
         });
 
-        function saveItems() {
-            localStorage.setItem('allcon_dashboard_items', JSON.stringify(items));
+        if (filtered.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <h3>No items found</h3>
+                    <p style="margin-top: 6px; font-size: 13px;">Click "Submit Item" above to add your first tool to the dashboard.</p>
+                </div>
+            `;
+            return;
         }
 
-        // Render Dashboard Items
-        function renderItems() {
-            const grid = document.getElementById('itemsGrid');
-            const emptyState = document.getElementById('emptyState');
-            grid.innerHTML = '';
+        grid.innerHTML = filtered.map(item => {
+            const iconUrl = getHighResFavicon(item.url);
+            const badgeClass = getCategoryBadgeClass(item.category);
+            const categorySvg = categorySvgs[item.category] || categorySvgs['Tool'];
 
-            const filtered = items.filter(item => {
-                const matchesCat = activeCategory === 'All' || item.category === activeCategory;
-                const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                      item.description.toLowerCase().includes(searchQuery.toLowerCase());
-                return matchesCat && matchesSearch;
-            });
-
-            if (filtered.length === 0) {
-                emptyState.classList.remove('hidden');
-                emptyState.classList.add('flex');
-            } else {
-                emptyState.classList.add('hidden');
-                emptyState.classList.remove('flex');
-            }
-
-            filtered.forEach(item => {
-                const card = document.createElement('div');
-                card.className = `glass-card rounded-xl p-4 flex flex-col justify-between relative group text-center ${isDeleteMode ? 'delete-mode-active' : ''}`;
-
-                // Default Fallback Category Icons
-                const fallbackIconMap = {
-                    'Tool': 'fa-wrench',
-                    'Database': 'fa-database',
-                    'Knowledge Hub': 'fa-book-bookmark',
-                    'Internal Platforms': 'fa-network-wired'
-                };
-                const fallbackIconClass = fallbackIconMap[item.category] || 'fa-globe';
-
-                card.innerHTML = `
-                    ${isDeleteMode ? `
-                        <button onclick="deleteItem('${item.id}', event)" class="absolute -top-2 -right-2 bg-allcon-red text-white w-7 h-7 rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition z-20">
-                            <i class="fa-solid fa-xmark text-sm"></i>
-                        </button>
-                    ` : ''}
-
-                    <div>
-                        <!-- More Details Info Button -->
-                        <button onclick="openDetailsModal('${item.id}', event)" class="absolute top-2.5 right-2.5 text-gray-500 hover:text-allcon-red text-xs p-1 rounded transition" title="More Details">
-                            <i class="fa-solid fa-circle-info text-base"></i>
-                        </button>
-
-                        <!-- Icon Container -->
-                        <div class="w-14 h-14 mx-auto mb-3 mt-2 rounded-xl bg-obsidian-input border border-obsidian-border p-2.5 flex items-center justify-center shadow-inner group-hover:border-allcon-red/40 transition">
-                            <img src="${item.icon}" 
-                                 alt="${item.title}" 
-                                 class="w-full h-full object-contain"
-                                 onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid ${fallbackIconClass} text-xl text-allcon-red\'></i>';">
-                        </div>
-
-                        <!-- Name -->
-                        <h4 class="font-bold text-sm text-white line-clamp-2 leading-snug mb-1 group-hover:text-allcon-red transition">${escapeHtml(item.title)}</h4>
-                        
-                        <!-- Category Tag -->
-                        <span class="inline-block text-[10px] font-semibold text-gray-400 bg-obsidian-input border border-obsidian-border px-2 py-0.5 rounded-full uppercase tracking-wider mb-3">
-                            ${escapeHtml(item.category)}
-                        </span>
+            return `
+                <div class="tool-card">
+                    ${item.desc ? `<button class="info-btn" onclick="openInfoModal('${item.id}')" title="More details">i</button>` : ''}
+                    
+                    <div class="icon-wrapper">
+                        <img class="icon-img" src="${iconUrl}" alt="${item.name}" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div style="display:none;">${categorySvg}</div>
                     </div>
 
-                    <!-- Action Launch Link -->
-                    <a href="${item.url}" target="_blank" onclick="if(isDeleteMode) event.preventDefault()" class="w-full mt-2 py-2 bg-obsidian-hover hover:bg-allcon-red text-gray-300 hover:text-white rounded-lg text-xs font-semibold border border-obsidian-border hover:border-allcon-red transition flex items-center justify-center gap-1.5">
-                        <span>Open</span>
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                    </a>
-                `;
+                    <div class="tool-title">${item.name}</div>
+                    <div class="category-badge ${badgeClass}">${item.category}</div>
 
-                grid.appendChild(card);
-            });
-        }
+                    <div class="card-actions">
+                        ${deleteMode ? `
+                            <button class="delete-overlay-btn" onclick="deleteItem('${item.id}')">
+                                🗑️ Confirm Delete
+                            </button>
+                        ` : `
+                            <a href="${item.url}" target="_blank" class="launch-btn">
+                                Launch ↗
+                            </a>
+                        `}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
 
-        // Toggle Delete Mode
-        function toggleDeleteMode() {
-            isDeleteMode = !isDeleteMode;
-            const btn = document.getElementById('deleteModeBtn');
-            const btnText = document.getElementById('deleteBtnText');
-            const banner = document.getElementById('deleteBanner');
+    function toggleDeleteMode() {
+        deleteMode = !deleteMode;
+        const btn = document.getElementById('btnDeleteMode');
+        btn.classList.toggle('active', deleteMode);
+        btn.innerHTML = deleteMode ? '⚠️ Exit Delete Mode' : '🗑️ Delete Item';
+        renderDashboard();
+    }
 
-            if (isDeleteMode) {
-                btn.classList.add('bg-allcon-red', 'text-white', 'border-allcon-red');
-                btn.classList.remove('bg-obsidian-card', 'text-gray-300');
-                btnText.innerText = 'Exit Delete';
-                banner.classList.remove('hidden');
-            } else {
-                btn.classList.remove('bg-allcon-red', 'text-white', 'border-allcon-red');
-                btn.classList.add('bg-obsidian-card', 'text-gray-300');
-                btnText.innerText = 'Delete Item';
-                banner.classList.add('hidden');
-            }
+    function deleteItem(id) {
+        items = items.filter(i => i.id !== id);
+        localStorage.setItem('ALLCON_DASHBOARD_ITEMS', JSON.stringify(items));
+        renderDashboard();
+    }
 
-            renderItems();
-        }
+    function setCategoryFilter(category, btnElement) {
+        currentCategory = category;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btnElement.classList.add('active');
+        renderDashboard();
+    }
 
-        function deleteItem(id, event) {
-            event.stopPropagation();
-            if (confirm('Are you sure you want to remove this tool from your dashboard?')) {
-                items = items.filter(item => item.id !== id);
-                saveItems();
-                renderItems();
-            }
-        }
+    /* Modal Handlers */
+    function openSubmitModal() {
+        document.getElementById('submitModal').classList.add('active');
+    }
 
-        // Category Filtering
-        function filterCategory(category) {
-            activeCategory = category;
-            document.querySelectorAll('.cat-tab').forEach(tab => {
-                if (tab.dataset.cat === category) {
-                    tab.classList.add('bg-allcon-red', 'text-white');
-                    tab.classList.remove('bg-obsidian-card', 'text-gray-400');
-                } else {
-                    tab.classList.remove('bg-allcon-red', 'text-white');
-                    tab.classList.add('bg-obsidian-card', 'text-gray-400');
-                }
-            });
-            renderItems();
-        }
+    function closeSubmitModal() {
+        document.getElementById('submitModal').classList.remove('active');
+        document.getElementById('submitForm').reset();
+    }
 
-        // Search Input
-        function handleSearch() {
-            searchQuery = document.getElementById('searchInput').value;
-            renderItems();
-        }
+    function handleFormSubmit(e) {
+        e.preventDefault();
+        const url = document.getElementById('itemUrl').value;
+        const name = document.getElementById('itemName').value;
+        const category = document.getElementById('itemCategory').value;
+        const desc = document.getElementById('itemDesc').value;
 
-        // Modal Controls
-        function openSubmitModal() {
-            document.getElementById('submitModal').classList.remove('hidden');
-        }
+        const newItem = {
+            id: 'item_' + Date.now(),
+            url,
+            name,
+            category,
+            desc
+        };
 
-        function closeSubmitModal() {
-            document.getElementById('submitModal').classList.add('hidden');
-            document.getElementById('itemForm').reset();
-        }
+        items.push(newItem);
+        localStorage.setItem('ALLCON_DASHBOARD_ITEMS', JSON.stringify(items));
+        closeSubmitModal();
+        renderDashboard();
+    }
 
-        function autoFetchIcon() {
-            const urlVal = document.getElementById('formUrl').value;
-            const iconInput = document.getElementById('formIcon');
-            if (urlVal && !iconInput.value) {
-                try {
-                    const parsed = new URL(urlVal);
-                    iconInput.value = `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=128`;
-                } catch (e) {
-                    // Invalid URL structure, ignore
-                }
-            }
-        }
+    function openInfoModal(id) {
+        const item = items.find(i => i.id === id);
+        if (!item) return;
 
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            const title = document.getElementById('formTitle').value.trim();
-            const url = document.getElementById('formUrl').value.trim();
-            const category = document.getElementById('formCategory').value;
-            let icon = document.getElementById('formIcon').value.trim();
-            const description = document.getElementById('formDescription').value.trim();
+        document.getElementById('infoTitle').innerText = item.name;
+        document.getElementById('infoCategory').innerText = item.category;
+        document.getElementById('infoCategory').className = `category-badge ${getCategoryBadgeClass(item.category)}`;
+        document.getElementById('infoDesc').innerText = item.desc || 'No description provided for this tool.';
+        document.getElementById('infoLink').href = item.url;
 
-            if (!icon) {
-                try {
-                    const parsed = new URL(url);
-                    icon = `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=128`;
-                } catch (err) {
-                    icon = '';
-                }
-            }
+        document.getElementById('infoModal').classList.add('active');
+    }
 
-            const newItem = {
-                id: 'item-' + Date.now(),
-                title,
-                url,
-                category,
-                icon,
-                description
-            };
+    function closeInfoModal() {
+        document.getElementById('infoModal').classList.remove('active');
+    }
 
-            items.unshift(newItem);
-            saveItems();
-            renderItems();
-            closeSubmitModal();
-        }
+    // Initial Dashboard Load
+    renderDashboard();
+</script>
 
-        // Details Modal
-        function openDetailsModal(id, event) {
-            event.stopPropagation();
-            const item = items.find(i => i.id === id);
-            if (!item) return;
-
-            document.getElementById('detailModalTitle').innerText = item.title;
-            document.getElementById('detailModalCategory').innerText = item.category;
-            document.getElementById('detailModalDescription').innerText = item.description;
-            document.getElementById('detailModalIcon').src = item.icon || 'https://via.placeholder.com/64';
-            document.getElementById('detailModalUrl').innerText = item.url;
-            document.getElementById('detailModalUrl').href = item.url;
-            document.getElementById('detailModalLaunchBtn').href = item.url;
-
-            document.getElementById('detailsModal').classList.remove('hidden');
-        }
-
-        function closeDetailsModal() {
-            document.getElementById('detailsModal').classList.add('hidden');
-        }
-
-        // Utility: Sanitizer
-        function escapeHtml(str) {
-            return str.replace(/[&<>"']/g, function(m) {
-                return {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#039;'
-                }[m];
-            });
-        }
-    </script>
 </body>
 </html>
