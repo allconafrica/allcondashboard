@@ -243,7 +243,7 @@
             width: 60px;
             height: 60px;
             border-radius: 12px;
-            background-color: #090a0c;
+            background-color: #1e242c;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -412,10 +412,6 @@
             text-transform: none;
         }
 
-        .external-link:hover {
-            text-decoration: underline;
-        }
-
         .form-input, .form-select, .form-textarea {
             width: 100%;
             background-color: #090a0c;
@@ -521,7 +517,7 @@
                     <span class="auto-hint" style="margin:0;">Recommended</span>
                 </label>
                 <select id="itemIconPreset" class="form-select">
-                    <option value="AUTO">Auto Detect (Web Favicon / Category Default)</option>
+                    <option value="AUTO">Auto Detect (Web Favicon)</option>
                     <option value="calc">🧮 Calculator</option>
                     <option value="hub">📚 Knowledge Hub / Book</option>
                     <option value="db">🗄️ Database / Storage</option>
@@ -536,7 +532,7 @@
                     <span>Custom Favicon Image URL (Optional)</span>
                     <a href="https://icon-sets.iconify.design/" target="_blank" class="external-link">Find Icons ↗</a>
                 </label>
-                <input type="url" id="itemIconUrl" class="form-input" placeholder="Paste direct image or SVG URL here">
+                <input type="url" id="itemIconUrl" class="form-input" placeholder="Leave blank to use Icon Preset">
             </div>
 
             <div class="form-group">
@@ -575,12 +571,18 @@
 </div>
 
 <script>
-    let items = JSON.parse(localStorage.getItem('ALLCON_DASHBOARD_ITEMS')) || [];
+    let items = [];
+    try {
+        items = JSON.parse(localStorage.getItem('ALLCON_DASHBOARD_ITEMS')) || [];
+    } catch(e) {
+        items = [];
+    }
+
     let deleteMode = false;
     let currentCategory = 'ALL';
     let currentActiveInfoId = null;
 
-//  Vector Preset SVGs
+    // Correct Vector Preset SVGs
     const presetSvgs = {
         'calc': `<svg class="svg-icon" viewBox="0 0 24 24" fill="#81c784"><path d="M19 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 4v3H7V6h10zm-7 6h2v2h-2v-2zm0 4h2v2h-2v-2zm-4-4h2v2H6v-2zm0 4h2v2H6v-2zm8-4h2v6h-2v-6z"/></svg>`,
         'hub': `<svg class="svg-icon" viewBox="0 0 24 24" fill="#ffb74d"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.2.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.35-.75-2.25-1zM19 18.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/></svg>`,
@@ -588,7 +590,6 @@
         'platform': `<svg class="svg-icon" viewBox="0 0 24 24" fill="#ba68c8"><path d="M4 4h16c1.1 0 2 .9 2 2v4c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 8h16c1.1 0 2 .9 2 2v4c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2v-4c0-1.1.9-2 2-2zm2-5h2v2H6V7zm0 8h2v2H6v-2zm10 0h2v2h-2v-2zm0-8h2v2h-2V7z"/></svg>`,
         'gear': `<svg class="svg-icon" viewBox="0 0 24 24" fill="#9aa5b1"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>`,
         'chart': `<svg class="svg-icon" viewBox="0 0 24 24" fill="#e53935"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>`
-    };
     };
 
     const categorySvgs = {
@@ -636,7 +637,7 @@
 
     function renderDashboard() {
         const grid = document.getElementById('cardsGrid');
-        const search = document.getElementById('searchInput').value.toLowerCase();
+        const search = (document.getElementById('searchInput').value || '').toLowerCase();
 
         let filtered = items.filter(item => {
             const matchesSearch = item.name.toLowerCase().includes(search) || (item.desc && item.desc.toLowerCase().includes(search));
@@ -658,13 +659,12 @@
             const iconUrl = getFaviconUrl(item);
             const badgeClass = getCategoryBadgeClass(item.category);
             
-            // Choose vector fallback
             let vectorSvg = categorySvgs[item.category] || categorySvgs['Tool'];
             if (item.preset && item.preset !== 'AUTO' && presetSvgs[item.preset]) {
                 vectorSvg = presetSvgs[item.preset];
             }
 
-            const usePresetDirectly = item.preset && item.preset !== 'AUTO' && !item.customIcon;
+            const usePresetDirectly = (item.preset && item.preset !== 'AUTO') || !item.customIcon;
 
             return `
                 <div class="tool-card">
@@ -727,13 +727,15 @@
         if (editItemId) {
             const item = items.find(i => i.id === editItemId);
             if (item) {
-                document.getElementById('itemUrl').value = item.url;
-                document.getElementById('itemName').value = item.name;
-                document.getElementById('itemCategory').value = item.category;
+                document.getElementById('itemUrl').value = item.url || '';
+                document.getElementById('itemName').value = item.name || '';
+                document.getElementById('itemCategory').value = item.category || 'Tool';
                 document.getElementById('itemIconPreset').value = item.preset || 'AUTO';
                 document.getElementById('itemIconUrl').value = item.customIcon || '';
                 document.getElementById('itemDesc').value = item.desc || '';
             }
+        } else {
+            document.getElementById('submitForm').reset();
         }
 
         document.getElementById('submitModal').classList.add('active');
@@ -756,13 +758,11 @@
         const desc = document.getElementById('itemDesc').value;
 
         if (editId) {
-            // Edit existing
             const index = items.findIndex(i => i.id === editId);
             if (index !== -1) {
                 items[index] = { ...items[index], url, name, category, preset, customIcon, desc };
             }
         } else {
-            // Create new
             const newItem = {
                 id: 'item_' + Date.now(),
                 url,
