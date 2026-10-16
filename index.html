@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALLCON Central Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: {
+                            base: '#0d0f12',
+                            card: '#14181d',
+                            border: '#232931',
+                            hover: '#1b2027',
+                            input: '#090a0c'
+                        },
+                        allcon: {
+                            red: '#e53935',
+                            redDark: '#c62828',
+                            redGlow: 'rgba(229, 57, 53, 0.25)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0d0f12;
+            color: #f0f3f6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0d0f12;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #232931;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e53935;
+        }
+
+        /* Delete Shake Animation */
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-1deg); }
+            75% { transform: rotate(1deg); }
+        }
+        .delete-mode-active {
+            animation: shake 0.3s infinite ease-in-out;
+            border-color: #e53935 !important;
+            box-shadow: 0 0 12px rgba(229, 57, 53, 0.4) !important;
+        }
+
+        .glass-card {
+            background-color: #14181d;
+            border: 1px solid #232931;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .glass-card:hover {
+            border-color: #e53935;
+            box-shadow: 0 6px 20px rgba(229, 57, 53, 0.15);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6 lg:p-8 flex flex-col min-h-screen">
+
+    <div class="max-w-7xl mx-auto w-full flex-grow flex flex-col">
+        
+        <!-- Header Section -->
+        <header class="border-b-2 border-allcon-red pb-6 mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div class="flex flex-col gap-3 max-w-2xl">
+                <!-- Logo -->
+                <div class="w-48 sm:w-56 h-auto">
+                    <img src="ALLCON-Logo.jpg" 
+                         alt="ALLCON Fabrication & Engineering" 
+                         class="w-full h-auto object-contain rounded"
+                         onerror="this.onerror=null; this.src='https://placehold.co/240x60/e53935/ffffff?text=ALLCON+FABRICATION';">
+                </div>
+                <!-- Subtitle -->
+                <p class="text-gray-300 text-sm sm:text-base font-normal tracking-wide leading-relaxed">
+                    Welcome to the Allcon dashboard where you will find all tools, databases and knowledge hubs.
+                </p>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center gap-3">
+                <button onclick="toggleDeleteMode()" id="deleteModeBtn" 
+                        class="px-4 py-2.5 rounded-lg border border-gray-700 bg-obsidian-card hover:bg-red-950/40 text-gray-300 hover:text-allcon-red hover:border-allcon-red font-semibold text-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span id="deleteBtnText">Delete Item</span>
+                </button>
+                <button onclick="openSubmitModal()" 
+                        class="px-5 py-2.5 rounded-lg bg-allcon-red hover:bg-allcon-redDark text-white font-semibold text-sm shadow-lg shadow-allcon-red/20 transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Submit Item</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Utility Bar: Search & Category Filter Tabs -->
+        <div class="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center mb-8">
+            
+            <!-- Category Filter Tabs (Index) -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-2 md:pb-0 scrollbar-none text-xs sm:text-sm">
+                <button onclick="filterCategory('All')" class="cat-tab active px-4 py-2 rounded-md font-semibold transition bg-allcon-red text-white" data-cat="All">All</button>
+                <button onclick="filterCategory('Tool')" class="cat-tab px-4 py-2 rounded-md font-semibold transition bg-obsidian-card text-gray-400 hover:text-white border border-obsidian-border" data-cat="Tool">Tool</button>
+                <button onclick="filterCategory('Database')" class="cat-tab px-4 py-2 rounded-md font-semibold transition bg-obsidian-card text-gray-400 hover:text-white border border-obsidian-border" data-cat="Database">Database</button>
+                <button onclick="filterCategory('Knowledge Hub')" class="cat-tab px-4 py-2 rounded-md font-semibold transition bg-obsidian-card text-gray-400 hover:text-white border border-obsidian-border" data-cat="Knowledge Hub">Knowledge Hub</button>
+                <button onclick="filterCategory('Internal Platforms')" class="cat-tab px-4 py-2 rounded-md font-semibold transition bg-obsidian-card text-gray-400 hover:text-white border border-obsidian-border" data-cat="Internal Platforms">Internal Platforms</button>
+            </div>
+
+            <!-- Search Input -->
+            <div class="relative min-w-[260px] md:w-72">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
+                <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search tools or keywords..." 
+                       class="w-full bg-obsidian-input border border-obsidian-border rounded-lg pl-10 pr-4 py-2 text-sm text-gray-200 outline-none focus:border-allcon-red transition">
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <main class="flex-grow">
+            <!-- Delete Banner Mode Indicator -->
+            <div id="deleteBanner" class="hidden mb-6 p-3 bg-red-950/40 border border-allcon-red rounded-lg text-allcon-red text-sm flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation animate-pulse"></i>
+                    <span><strong>Delete Mode Active:</strong> Click the trash button on any item card to permanently remove it.</span>
+                </div>
+                <button onclick="toggleDeleteMode()" class="text-xs text-gray-300 underline hover:text-white">Exit Delete Mode</button>
+            </div>
+
+            <!-- Cards Container Grid -->
+            <div id="itemsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                <!-- Dynamically populated via JS -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center text-gray-500">
+                <i class="fa-solid fa-folder-open text-5xl mb-4 text-gray-600"></i>
+                <p class="text-lg font-semibold text-gray-400">No items found</p>
+                <p class="text-sm mt-1">Try adjusting your search query or click "Submit Item" to add a new tool.</p>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-12 pt-6 border-t border-obsidian-border text-center text-xs text-gray-500">
+            ALLCON Fabrication & Engineering (Pty) Ltd. &copy; Central Platform Portal
+        </footer>
+    </div>
+
+    <!-- SUBMIT ITEM MODAL -->
+    <div id="submitModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-obsidian-card border border-obsidian-border rounded-xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <!-- Modal Header -->
+            <div class="p-5 border-b border-obsidian-border flex items-center justify-between bg-obsidian-base">
+                <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                    <i class="fa-solid fa-square-plus text-allcon-red"></i>
+                    Submit New Item
+                </h3>
+                <button onclick="closeSubmitModal()" class="text-gray-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Form -->
+            <form id="itemForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
+                <!-- Title -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Item Name / Title *</label>
+                    <input type="text" id="formTitle" required placeholder="e.g. Arc & Ring Calculator" 
+                           class="w-full bg-obsidian-input border border-obsidian-border rounded-lg px-3.5 py-2.5 text-sm text-white outline-none focus:border-allcon-red">
+                </div>
+
+                <!-- URL -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Target Link / URL *</label>
+                    <input type="url" id="formUrl" required placeholder="https://example.com/tool" onchange="autoFetchIcon()"
+                           class="w-full bg-obsidian-input border border-obsidian-border rounded-lg px-3.5 py-2.5 text-sm text-white outline-none focus:border-allcon-red">
+                </div>
+
+                <!-- Category -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Category *</label>
+                    <select id="formCategory" required class="w-full bg-obsidian-input border border-obsidian-border rounded-lg px-3.5 py-2.5 text-sm text-white outline-none focus:border-allcon-red">
+                        <option value="Tool">1. Tool</option>
+                        <option value="Database">2. Database</option>
+                        <option value="Knowledge Hub">3. Knowledge Hub</option>
+                        <option value="Internal Platforms">4. Internal Platforms</option>
+                    </select>
+                </div>
+
+                <!-- Optional Custom Icon -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Icon / SVG URL <span class="text-gray-500 font-normal">(Optional - Auto-fetched if blank)</span></label>
+                    <input type="url" id="formIcon" placeholder="https://site.com/icon.png" 
+                           class="w-full bg-obsidian-input border border-obsidian-border rounded-lg px-3.5 py-2.5 text-sm text-white outline-none focus:border-allcon-red">
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Description / Tool Scope *</label>
+                    <textarea id="formDescription" required rows="3" placeholder="Provide a summary of what this tool is used for..." 
+                              class="w-full bg-obsidian-input border border-obsidian-border rounded-lg px-3.5 py-2.5 text-sm text-white outline-none focus:border-allcon-red resize-none"></textarea>
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="pt-2 flex items-center justify-end gap-3">
+                    <button type="button" onclick="closeSubmitModal()" class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-allcon-red hover:bg-allcon-redDark text-white text-sm font-semibold shadow-lg shadow-allcon-red/20">Submit to Dashboard</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MORE DETAILS MODAL -->
+    <div id="detailsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-obsidian-card border border-obsidian-border rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
+            <!-- Header -->
+            <div class="p-5 border-b border-obsidian-border flex items-center justify-between bg-obsidian-base">
+                <div class="flex items-center gap-3">
+                    <img id="detailModalIcon" src="" class="w-8 h-8 rounded object-contain bg-obsidian-input p-1 border border-obsidian-border" alt="Icon">
+                    <div>
+                        <h3 id="detailModalTitle" class="font-bold text-white leading-tight">Tool Title</h3>
+                        <span id="detailModalCategory" class="text-xs text-allcon-red font-semibold">Category</span>
+                    </div>
+                </div>
+                <button onclick="closeDetailsModal()" class="text-gray-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 space-y-4">
+                <div>
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Description</h4>
+                    <p id="detailModalDescription" class="text-sm text-gray-200 leading-relaxed bg-obsidian-input p-3.5 rounded-lg border border-obsidian-border">
+                        Description content...
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Target Address</h4>
+                    <a id="detailModalUrl" href="#" target="_blank" class="text-xs text-allcon-red hover:underline break-all block truncate">
+                        https://...
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 border-t border-obsidian-border bg-obsidian-base flex justify-end gap-2">
+                <button onclick="closeDetailsModal()" class="px-4 py-2 text-xs font-semibold text-gray-400 hover:text-white">Close</button>
+                <a id="detailModalLaunchBtn" href="#" target="_blank" class="px-4 py-2 bg-allcon-red hover:bg-allcon-redDark text-white text-xs font-semibold rounded-lg flex items-center gap-1.5">
+                    <span>Launch Tool</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- APP SCRIPT LOGIC -->
+    <script>
+        // Default Pre-seeded Items
+        const DEFAULT_ITEMS = [
+            {
+                id: 'default-1',
+                title: 'Arc & Ring Calculator',
+                url: 'https://allcon.github.io/arc-calculator',
+                category: 'Tool',
+                icon: 'https://www.google.com/s2/favicons?domain=github.com&sz=128',
+                description: 'Procurement and rolling waste calculator for 6M, 9M, and 13M factory angle bars with OD and Neutral Axis calculation modes.'
+            }
+        ];
+
+        let items = [];
+        let activeCategory = 'All';
+        let searchQuery = '';
+        let isDeleteMode = false;
+
+        // Initialize Data
+        window.addEventListener('DOMContentLoaded', () => {
+            const stored = localStorage.getItem('allcon_dashboard_items');
+            if (stored) {
+                try {
+                    items = JSON.parse(stored);
+                } catch (e) {
+                    items = DEFAULT_ITEMS;
+                }
+            } else {
+                items = DEFAULT_ITEMS;
+                saveItems();
+            }
+            renderItems();
+        });
+
+        function saveItems() {
+            localStorage.setItem('allcon_dashboard_items', JSON.stringify(items));
+        }
+
+        // Render Dashboard Items
+        function renderItems() {
+            const grid = document.getElementById('itemsGrid');
+            const emptyState = document.getElementById('emptyState');
+            grid.innerHTML = '';
+
+            const filtered = items.filter(item => {
+                const matchesCat = activeCategory === 'All' || item.category === activeCategory;
+                const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesCat && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `glass-card rounded-xl p-4 flex flex-col justify-between relative group text-center ${isDeleteMode ? 'delete-mode-active' : ''}`;
+
+                // Default Fallback Category Icons
+                const fallbackIconMap = {
+                    'Tool': 'fa-wrench',
+                    'Database': 'fa-database',
+                    'Knowledge Hub': 'fa-book-bookmark',
+                    'Internal Platforms': 'fa-network-wired'
+                };
+                const fallbackIconClass = fallbackIconMap[item.category] || 'fa-globe';
+
+                card.innerHTML = `
+                    ${isDeleteMode ? `
+                        <button onclick="deleteItem('${item.id}', event)" class="absolute -top-2 -right-2 bg-allcon-red text-white w-7 h-7 rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition z-20">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                    ` : ''}
+
+                    <div>
+                        <!-- More Details Info Button -->
+                        <button onclick="openDetailsModal('${item.id}', event)" class="absolute top-2.5 right-2.5 text-gray-500 hover:text-allcon-red text-xs p-1 rounded transition" title="More Details">
+                            <i class="fa-solid fa-circle-info text-base"></i>
+                        </button>
+
+                        <!-- Icon Container -->
+                        <div class="w-14 h-14 mx-auto mb-3 mt-2 rounded-xl bg-obsidian-input border border-obsidian-border p-2.5 flex items-center justify-center shadow-inner group-hover:border-allcon-red/40 transition">
+                            <img src="${item.icon}" 
+                                 alt="${item.title}" 
+                                 class="w-full h-full object-contain"
+                                 onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid ${fallbackIconClass} text-xl text-allcon-red\'></i>';">
+                        </div>
+
+                        <!-- Name -->
+                        <h4 class="font-bold text-sm text-white line-clamp-2 leading-snug mb-1 group-hover:text-allcon-red transition">${escapeHtml(item.title)}</h4>
+                        
+                        <!-- Category Tag -->
+                        <span class="inline-block text-[10px] font-semibold text-gray-400 bg-obsidian-input border border-obsidian-border px-2 py-0.5 rounded-full uppercase tracking-wider mb-3">
+                            ${escapeHtml(item.category)}
+                        </span>
+                    </div>
+
+                    <!-- Action Launch Link -->
+                    <a href="${item.url}" target="_blank" onclick="if(isDeleteMode) event.preventDefault()" class="w-full mt-2 py-2 bg-obsidian-hover hover:bg-allcon-red text-gray-300 hover:text-white rounded-lg text-xs font-semibold border border-obsidian-border hover:border-allcon-red transition flex items-center justify-center gap-1.5">
+                        <span>Open</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Toggle Delete Mode
+        function toggleDeleteMode() {
+            isDeleteMode = !isDeleteMode;
+            const btn = document.getElementById('deleteModeBtn');
+            const btnText = document.getElementById('deleteBtnText');
+            const banner = document.getElementById('deleteBanner');
+
+            if (isDeleteMode) {
+                btn.classList.add('bg-allcon-red', 'text-white', 'border-allcon-red');
+                btn.classList.remove('bg-obsidian-card', 'text-gray-300');
+                btnText.innerText = 'Exit Delete';
+                banner.classList.remove('hidden');
+            } else {
+                btn.classList.remove('bg-allcon-red', 'text-white', 'border-allcon-red');
+                btn.classList.add('bg-obsidian-card', 'text-gray-300');
+                btnText.innerText = 'Delete Item';
+                banner.classList.add('hidden');
+            }
+
+            renderItems();
+        }
+
+        function deleteItem(id, event) {
+            event.stopPropagation();
+            if (confirm('Are you sure you want to remove this tool from your dashboard?')) {
+                items = items.filter(item => item.id !== id);
+                saveItems();
+                renderItems();
+            }
+        }
+
+        // Category Filtering
+        function filterCategory(category) {
+            activeCategory = category;
+            document.querySelectorAll('.cat-tab').forEach(tab => {
+                if (tab.dataset.cat === category) {
+                    tab.classList.add('bg-allcon-red', 'text-white');
+                    tab.classList.remove('bg-obsidian-card', 'text-gray-400');
+                } else {
+                    tab.classList.remove('bg-allcon-red', 'text-white');
+                    tab.classList.add('bg-obsidian-card', 'text-gray-400');
+                }
+            });
+            renderItems();
+        }
+
+        // Search Input
+        function handleSearch() {
+            searchQuery = document.getElementById('searchInput').value;
+            renderItems();
+        }
+
+        // Modal Controls
+        function openSubmitModal() {
+            document.getElementById('submitModal').classList.remove('hidden');
+        }
+
+        function closeSubmitModal() {
+            document.getElementById('submitModal').classList.add('hidden');
+            document.getElementById('itemForm').reset();
+        }
+
+        function autoFetchIcon() {
+            const urlVal = document.getElementById('formUrl').value;
+            const iconInput = document.getElementById('formIcon');
+            if (urlVal && !iconInput.value) {
+                try {
+                    const parsed = new URL(urlVal);
+                    iconInput.value = `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=128`;
+                } catch (e) {
+                    // Invalid URL structure, ignore
+                }
+            }
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const title = document.getElementById('formTitle').value.trim();
+            const url = document.getElementById('formUrl').value.trim();
+            const category = document.getElementById('formCategory').value;
+            let icon = document.getElementById('formIcon').value.trim();
+            const description = document.getElementById('formDescription').value.trim();
+
+            if (!icon) {
+                try {
+                    const parsed = new URL(url);
+                    icon = `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=128`;
+                } catch (err) {
+                    icon = '';
+                }
+            }
+
+            const newItem = {
+                id: 'item-' + Date.now(),
+                title,
+                url,
+                category,
+                icon,
+                description
+            };
+
+            items.unshift(newItem);
+            saveItems();
+            renderItems();
+            closeSubmitModal();
+        }
+
+        // Details Modal
+        function openDetailsModal(id, event) {
+            event.stopPropagation();
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('detailModalTitle').innerText = item.title;
+            document.getElementById('detailModalCategory').innerText = item.category;
+            document.getElementById('detailModalDescription').innerText = item.description;
+            document.getElementById('detailModalIcon').src = item.icon || 'https://via.placeholder.com/64';
+            document.getElementById('detailModalUrl').innerText = item.url;
+            document.getElementById('detailModalUrl').href = item.url;
+            document.getElementById('detailModalLaunchBtn').href = item.url;
+
+            document.getElementById('detailsModal').classList.remove('hidden');
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').classList.add('hidden');
+        }
+
+        // Utility: Sanitizer
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
+    </script>
+</body>
+</html>
